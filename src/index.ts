@@ -1,9 +1,10 @@
 import express, { Application, Request, Response } from "express";
 import dotenv from "dotenv";
 import { AppError } from "./utils/app-error";
-import { errorHandler } from "./middlewares/errorHandler";
+import { errorHandler } from "./middlewares/error-handler";
 import categoryRoutes from "./routes/category.route";
 import authRoutes from "./routes/auth.route";
+import configureCors from "./utils/cors-config";
 
 // Load environment variables
 dotenv.config();
@@ -15,6 +16,7 @@ const app: Application = express();
 const PORT: number = parseInt(process.env.PORT || "5000", 10);
 const APP_NAME: string = process.env.APP_NAME || "MyApp";
 
+app.use(configureCors());
 app.use(express.json());
 
 app.use(categoryRoutes);
