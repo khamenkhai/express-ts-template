@@ -1,5 +1,5 @@
-import { userDb } from "../../config/db/user.db";
-import { IUser, IUserPayload, TokenPair, UserRole } from "../../shared/types";
+import { User } from "../../db/schema";
+import { TokenPair, UserRole } from "../../shared/types";
 import { ConflictError, UnauthorizedError } from "../../shared/types/error";
 import {
   generateTokenPair,
@@ -9,40 +9,37 @@ import {
   comparePassword,
   hashPassword,
 } from "../../shared/utils/password.utils";
+import { userService } from "../users/user.service";
 import { LoginInput, RegisterInput } from "./auth.validation";
 
 export class AuthService {
   async register(
     data: RegisterInput,
-  ): Promise<{ user: Omit<IUser, "password">; tokens: TokenPair }> {
-    // Check if user already exists
-    const existingUser = await userDb.findByEmail(data.email);
+  ): Promise<{ user: Omit<User, "password">; tokens: TokenPair }> {
+    // 1. Check if user already exists
+    const existingUser = await userService.getUserByEmail(data.email);
     if (existingUser) {
       throw new ConflictError("User with this email already exists");
     }
 
-    // Hash password
+    // 2. Hash password
     const hashedPassword = await hashPassword(data.password);
 
-    // Create user
-    const user = await userDb.create({
+    // 3. Create user via userService
+    const userWithoutPassword = await userService.createUser({
+      name: data.name,
       email: data.email,
       password: hashedPassword,
-      firstName: data.firstName,
-      lastName: data.lastName,
+      age: 20,
       role: UserRole.ADMIN,
-      isActive: true,
     });
 
-    // Generate tokens
+    // 4. Generate tokens
     const tokens = generateTokenPair({
-      id: user.id,
-      email: user.email,
-      role: user.role,
+      id: userWithoutPassword.id,
+      email: userWithoutPassword.email,
+      role: userWithoutPassword.role as UserRole,
     });
-
-    // Remove password from response
-    const { password, ...userWithoutPassword } = user;
 
     return {
       user: userWithoutPassword,
@@ -52,32 +49,27 @@ export class AuthService {
 
   async login(
     data: LoginInput,
-  ): Promise<{ user: Omit<IUser, "password">; tokens: TokenPair }> {
-    // Find user
-    const user = await userDb.findByEmail(data.email);
+  ): Promise<{ user: Omit<User, "password">; tokens: TokenPair }> {
+    // 1. Find user (we need the password for comparison, so we use the internal email search)
+    const user = await userService.getUserByEmail(data.email);
     if (!user) {
       throw new UnauthorizedError("Invalid credentials");
     }
 
-    // Check if user is active
-    if (!user.isActive) {
-      throw new UnauthorizedError("Account is deactivated");
-    }
-
-    // Verify password
+    // 2. Verify password
     const isPasswordValid = await comparePassword(data.password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedError("Invalid credentials");
     }
 
-    // Generate tokens
+    // 3. Generate tokens
     const tokens = generateTokenPair({
       id: user.id,
       email: user.email,
-      role: user.role,
+      role: user.role as UserRole,
     });
 
-    // Remove password from response
+    // 4. Remove password from response
     const { password, ...userWithoutPassword } = user;
 
     return {
@@ -87,10 +79,8 @@ export class AuthService {
   }
 
   async refreshToken(refreshToken: string): Promise<TokenPair> {
-    // Verify refresh token
     const payload = verifyRefreshToken(refreshToken);
 
-    // Generate new token pair
     return generateTokenPair({
       id: payload.id,
       email: payload.email,
@@ -98,14 +88,9 @@ export class AuthService {
     });
   }
 
-  async getProfile(userId: string): Promise<Omit<IUser, "password">> {
-    const user = await userDb.findById(userId);
-    if (!user) {
-      throw new UnauthorizedError("User not found");
-    }
-
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+  async getProfile(userId: number): Promise<Omit<User, "password">> {
+    // Simply proxy the request to the userService
+    return await userService.getUserById(userId);
   }
 }
 

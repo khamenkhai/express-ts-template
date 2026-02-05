@@ -6,20 +6,9 @@ export enum UserRole {
   MODERATOR = 'MODERATOR',
 }
 
-export interface IUser {
-  id: string;
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  role: UserRole;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 export interface IUserPayload {
-  id: string;
+  id: number;
   email: string;
   role: UserRole;
 }

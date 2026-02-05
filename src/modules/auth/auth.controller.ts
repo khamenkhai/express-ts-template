@@ -56,6 +56,7 @@ export class AuthController {
 
   async getProfile(req: AuthRequest, res: Response, next: NextFunction) {
     try {
+     
       if (!req.user) {
         throw new Error('User not authenticated');
       }

@@ -39,7 +39,7 @@ userRoutes.get(
  * @desc    Update current user
  * @access  Private
  */
-userRoutes.patch("/me", validate(updateUserSchema), userController.updateUser);
+userRoutes.patch("/me", authenticate,userController.updateUser);
 
 /**
  * @route   PATCH /api/v1/users/:id/role

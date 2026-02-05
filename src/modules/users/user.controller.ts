@@ -18,10 +18,21 @@ export class UserController {
     }
   }
 
-  async getUserById(req: AuthRequest, res: Response, next: NextFunction) {
+  async getUserById(
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<any> {
     try {
       const { id } = req.params;
-      const user = await userService.getUserById(id);
+
+      const userId = Number(id);
+
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid User ID format" });
+      }
+
+      const user = await userService.getUserById(userId);
 
       res.status(200).json({
         success: true,
@@ -32,14 +43,27 @@ export class UserController {
     }
   }
 
-  async updateUser(req: AuthRequest, res: Response, next: NextFunction) {
+  async updateUser(
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<any> {
     try {
       if (!req.user) {
         throw new Error("User not authenticated");
       }
 
+      const userId = Number(req.user.id);
+
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid User ID format" });
+      }
+
       const data: UpdateUserInput = req.body;
-      const user = await userService.updateUser(req.user.id, data);
+
+      const user = await userService.updateUser(userId, {
+        name : data.name
+      });
 
       logger.info(`User updated: ${user.email}`);
 
@@ -60,9 +84,10 @@ export class UserController {
       }
 
       const { id } = req.params;
+      const userId = Number(id);
       const { role }: UpdateUserRoleInput = req.body;
 
-      const user = await userService.updateUserRole(id, role, req.user.id);
+      const user = await userService.updateUserRole(userId, role, req.user.id);
 
       logger.info(`User role updated: ${user.email} -> ${role}`);
 
@@ -83,7 +108,7 @@ export class UserController {
       }
 
       const { id } = req.params;
-      await userService.deleteUser(id, req.user.id);
+      await userService.deleteUser(Number(id), req.user.id);
 
       logger.info(`User deleted: ${id}`);
 

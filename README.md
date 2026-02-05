@@ -43,7 +43,7 @@ Edit `.env` and update the values:
 
 ```env
 NODE_ENV=development
-PORT=3000
+PORT=4000
 API_VERSION=v1
 
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-minimum-32-chars
@@ -51,7 +51,7 @@ JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-this-in-production-minim
 JWT_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
 
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+ALLOWED_ORIGINS=http://localhost:4000,http://localhost:5173
 ```
 
 4. **Create logs directory**
@@ -165,7 +165,7 @@ DELETE /api/v1/users/:id          # Delete user (Admin)
 ### Register User
 
 ```bash
-curl -X POST http://localhost:3000/api/v1/auth/register \
+curl -X POST http://localhost:4000/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -178,7 +178,7 @@ curl -X POST http://localhost:3000/api/v1/auth/register \
 ### Login
 
 ```bash
-curl -X POST http://localhost:3000/api/v1/auth/login \
+curl -X POST http://localhost:4000/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -189,7 +189,7 @@ curl -X POST http://localhost:3000/api/v1/auth/login \
 ### Access Protected Route
 
 ```bash
-curl -X GET http://localhost:3000/api/v1/auth/profile \
+curl -X GET http://localhost:4000/api/v1/auth/profile \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -258,7 +258,7 @@ Logs are saved to:
 
 Currently uses an in-memory database for demonstration. Replace `src/shared/database/user.db.ts` with your preferred database:
 
-- **PostgreSQL** with Prisma or TypeORM
+- **PostgreSQL** with Drizzle or TypeORM
 - **MongoDB** with Mongoose
 - **MySQL** with TypeORM
 
